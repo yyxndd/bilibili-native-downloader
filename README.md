@@ -17,7 +17,7 @@
 
 ## 界面
 
-![enter image description here](pic/bilibili native dowloader.png)
+![description](pic/main.png)
 
 ## 编译
 ### 环境
