@@ -1,0 +1,17 @@
+*.iml
+*/*.iml
+
+*/.settings/
+*/.DS_Store
+.DS_Store
+*/.idea/
+.idea/
+
+*.log
+*.class
+
+target/
+*/target/
+
+out/
+installer/

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import com.jfoenix.controls.*?>
+<?import java.lang.*?>
+
+<JFXClippedPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.moeee.controller.RootController">
+  <children>
+    <VBox prefHeight="300.0" prefWidth="600.0">
+      <children>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="650.0">
+          <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="140.0" text="B站视频链接地址:">
+              <opaqueInsets>
+                <Insets />
+              </opaqueInsets>
+              <HBox.margin>
+                <Insets />
+              </HBox.margin>
+              <padding>
+                <Insets top="5.0" />
+              </padding>
+            </Label>
+            <JFXTextField fx:id="inputUrl" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="350.0" text="https://www.bilibili.com/video/BV1ME411v7jv" unFocusColor="#392121">
+              <rotationAxis>
+                <Point3D x="1.0" y="1.0" z="1.0" />
+              </rotationAxis>
+              <HBox.margin>
+                <Insets top="5.0" />
+              </HBox.margin>
+              <padding>
+                <Insets top="15.0" />
+              </padding>
+            </JFXTextField>
+            <JFXCheckBox fx:id="cbDownloadAll" text="全集下载">
+              <HBox.margin>
+                <Insets left="23.0" top="24.0" />
+              </HBox.margin>
+            </JFXCheckBox>
+          </children>
+        </HBox>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="650.0">
+          <children>
+            <Label alignment="CENTER" prefHeight="60.0" prefWidth="149.0" text="清晰度选择:">
+              <opaqueInsets>
+                <Insets />
+              </opaqueInsets>
+              <padding>
+                <Insets left="30.0" top="5.0" />
+              </padding>
+            </Label>
+            <JFXRadioButton fx:id="radio0" selected="true" text="1080P+">
+              <toggleGroup>
+                <ToggleGroup fx:id="toggleGroup1" />
+              </toggleGroup>
+              <HBox.margin>
+                <Insets top="24.0" />
+              </HBox.margin>
+            </JFXRadioButton>
+            <JFXRadioButton fx:id="radio1" text="1080P" toggleGroup="$toggleGroup1">
+              <HBox.margin>
+                <Insets left="20.0" top="24.0" />
+              </HBox.margin>
+            </JFXRadioButton>
+            <JFXRadioButton fx:id="radio2" text="720P" toggleGroup="$toggleGroup1">
+              <HBox.margin>
+                <Insets left="20.0" top="24.0" />
+              </HBox.margin>
+            </JFXRadioButton>
+            <JFXRadioButton fx:id="radio3" text="480P" toggleGroup="$toggleGroup1">
+              <HBox.margin>
+                <Insets left="20.0" top="24.0" />
+              </HBox.margin>
+            </JFXRadioButton>
+            <JFXRadioButton fx:id="radio4" text="360P" toggleGroup="$toggleGroup1">
+              <HBox.margin>
+                <Insets left="20.0" top="24.0" />
+              </HBox.margin>
+            </JFXRadioButton>
+          </children>
+        </HBox>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="650.0">
+          <children>
+            <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="140.0" text="选择文件存储目录:">
+              <padding>
+                <Insets top="5.0" />
+              </padding>
+            </Label>
+            <JFXTextField fx:id="pathText" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="350.0">
+              <HBox.margin>
+                <Insets top="5.0" />
+              </HBox.margin>
+              <padding>
+                <Insets top="15.0" />
+              </padding>
+            </JFXTextField>
+            <Button fx:id="btnFileChoose" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#chooseFile" prefHeight="30.0" prefWidth="50.0" text="选择">
+              <HBox.margin>
+                <Insets left="15.0" top="13.0" />
+              </HBox.margin>
+            </Button>
+            <JFXButton fx:id="btnDownload" contentDisplay="CENTER" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onAction="#download" prefHeight="30.0" prefWidth="50.0" style="-jfx-button-type: RAISED; -fx-background-color: rgb(77,102,204); -fx-text-fill: WHITE;" styleClass="jfx-button" text="下载">
+              <HBox.margin>
+                <Insets left="28.0" top="13.0" />
+              </HBox.margin>
+            </JFXButton>
+          </children>
+        </HBox>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="650.0">
+          <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="140.0" text="标题:">
+              <HBox.margin>
+                <Insets />
+              </HBox.margin>
+              <padding>
+                <Insets left="76.0" top="5.0" />
+              </padding>
+            </Label>
+            <Label fx:id="labTitle" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="450.0">
+              <HBox.margin>
+                <Insets top="8.0" />
+              </HBox.margin>
+            </Label>
+          </children>
+          <VBox.margin>
+            <Insets />
+          </VBox.margin>
+        </HBox>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="650.0">
+          <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="140.0" text="UP主:">
+              <padding>
+                <Insets left="73.0" top="5.0" />
+              </padding>
+              <HBox.margin>
+                <Insets />
+              </HBox.margin>
+            </Label>
+            <Label fx:id="labAuthor" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="450.0">
+              <HBox.margin>
+                <Insets top="8.0" />
+              </HBox.margin>
+            </Label>
+          </children>
+        </HBox>
+        <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="60.0" prefWidth="650.0">
+          <children>
+            <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="300.0" progress="0.0" visible="false">
+              <HBox.margin>
+                <Insets left="150.0" top="15.0" />
+              </HBox.margin>
+            </ProgressBar>
+            <JFXSpinner fx:id="spinner" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="25.0" visible="false">
+              <HBox.margin>
+                <Insets left="5.0" top="12.0" />
+              </HBox.margin>
+            </JFXSpinner>
+            <Label fx:id="labTaskCount" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="130.0" visible="false">
+              <HBox.margin>
+                <Insets left="6.0" top="14.0" />
+              </HBox.margin>
+            </Label>
+          </children>
+        </HBox>
+      </children>
+    </VBox>
+  </children>
+</JFXClippedPane>
