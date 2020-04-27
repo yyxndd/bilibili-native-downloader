@@ -24,6 +24,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -31,6 +32,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.stage.DirectoryChooser;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
 
 /**
  * Title: RootController<br>
@@ -46,20 +48,22 @@ public class RootController {
      */
     private static final Pattern PATTERN_URL_BV = Pattern
         .compile("^https\\:\\/\\/www\\.bilibili\\.com\\/video\\/BV(\\S+)");
-    /**
-     * 番剧地址正则 https://www.bilibili.com/bangumi/play/ss32956?t=1352
-     */
-    private static final Pattern PATTERN_URL_BANGUMI = Pattern
-        .compile("^https\\:\\/\\/www\\.bilibili\\.com\\/bangumi\\/play\\/\\S+");
+    private static final Pattern PATTERN_BANGUMI_INFO = Pattern.compile("INITIAL_STATE__=(.*?\"]});");
     /**
      * 获取视频信息API(bv号版)
      */
     private static final String API_BILIBILI_BV = "https://api.bilibili.com/x/web-interface/view?bvid=%s";
+
     /**
      * 视频下载信息API
      */
     private static final String API_BILIBILI_DOWNLOAD = "https://interface.bilibili.com/v2/playurl?%s&sign=%s";
-    private static final String PARAMS = "appkey=iVGUTjsxvpLeuDCf&cid=%s&otype=json&qn=%s&type=";
+    /**
+     * 番剧下载信息API
+     */
+    private static final String API_BILIBILI_BANGUMI = "https://api.bilibili.com/x/player/playurl?cid=%s&avid=%s&qn=%s&session=%s";
+    private static final String SESSION = "27e19169%2C1599537027%2Cc3547";
+    private static final String PARAMS_VIDEO = "appkey=iVGUTjsxvpLeuDCf&cid=%s&otype=json&qn=%s&type=";
     private static final String SEC = "aHRmhWMLkdeMuILqORnYZocwMBpMEOdt";
     /**
      * 视频质量
@@ -92,6 +96,10 @@ public class RootController {
      */
     private static AtomicInteger finishedTaskCount = new AtomicInteger(0);
 
+    /**
+     * 是否是番剧
+     */
+    private static Boolean isBangumi = false;
     /**
      * 最顶层pane
      */
@@ -182,7 +190,7 @@ public class RootController {
      * @Date: 2020/4/13 <br>
      * @return: void
      */
-    public void download() {
+    public void download() throws IOException {
         if (!beforeDownload()) {
             return;
         }
@@ -200,6 +208,10 @@ public class RootController {
             hideSpinner();
             errorAlert("请选择一个文件夹");
             return;
+        }
+        if (isBangumi) {
+            // TODO 目前还没时间处理更高画质的下载
+            radio3.setSelected(Boolean.TRUE);
         }
         setQuality();
         paddingDownloadInfo();
@@ -228,80 +240,103 @@ public class RootController {
      * @Date: 2020/4/13 <br>
      * @return: Boolean
      */
-    private Boolean beforeDownload() {
+    private Boolean beforeDownload() throws IOException {
         downloadInfoList.clear();
         downloadUrlList.clear();
         String requestUrl = inputUrl.getText();
         // 判断是否是b站的番剧连接
-        boolean isBangumi = PATTERN_URL_BANGUMI.matcher(requestUrl).matches();
-        if (isBangumi) {
-            errorAlert("目前暂不支持番剧下载\n"
-                + "观看B站正版番剧请前往www.bilibili.com");
-            return Boolean.FALSE;
-        }
-        // 判断是否是b站的连接
-        boolean isBv = PATTERN_URL_BV.matcher(requestUrl).matches();
-        // 从搜索栏进入的地址处理
-        if (requestUrl.contains("?from=")) {
-            requestUrl = requestUrl.substring(0, requestUrl.indexOf("?from="));
-        }
-        // 从手机分享地址点击打开网页的地址处理
-        if (requestUrl.contains("/?p=")) {
-            requestUrl = requestUrl.replace("/?p=", "?p=");
-        }
-        // 从历史记录打开的地址处理
-        if (requestUrl.contains("?t=")) {
-            requestUrl = requestUrl.substring(0, requestUrl.indexOf("?t="));
-        }
-        // 区别是单p下载还是全集下载
-        if (cbDownloadAll.isSelected()) {
-            if (requestUrl.contains("?p=")) {
-                requestUrl = requestUrl.substring(0, requestUrl.indexOf("?p="));
+        if (requestUrl.contains("/bangumi/play")) {
+            // 去掉无用信息
+            if (requestUrl.contains("?")) {
+                requestUrl = requestUrl.substring(0, requestUrl.indexOf("?"));
             }
-        }
-        // 是否是分p
-        boolean containsP = requestUrl.contains("?p=");
-        if (!isBv) {
-            errorAlert("请复制粘贴使用完整B站视频链接\n"
-                + "如果还是不能识别，请联系作者");
-            return Boolean.FALSE;
-        }
-        String infoUrl;
-        // BV号
-        String bvId;
-        int p = 0;
-        if (containsP) {
-            bvId = requestUrl.substring(requestUrl.indexOf("BV") + 2, requestUrl.indexOf("?p="));
-            p = Integer.parseInt(requestUrl.substring(requestUrl.indexOf("?p=") + 3));
-        } else {
-            bvId = requestUrl.substring(requestUrl.indexOf("BV") + 2);
-        }
-        infoUrl = String.format(API_BILIBILI_BV, bvId);
-        String respond = HttpUtil.doGet(infoUrl);
-        // 增加链接获取信息失败后的信息反馈
-        if (StringUtils.isBlank(respond) || !JSONObject.parseObject(respond).getString("code").equals("0")) {
-            errorAlert("获取视频失败");
-            labTitle.setText(StringUtils.EMPTY);
-            labAuthor.setText(StringUtils.EMPTY);
-            return Boolean.FALSE;
-        }
-        JSONObject respondJson = JSONObject.parseObject(respond);
-        JSONObject data = respondJson.getJSONObject("data");
-        title = data.getString("title");
-        JSONArray pages = data.getJSONArray("pages");
-        if (containsP) {
-            // 获取单p信息
-            downloadInfoList.add(pages.getJSONObject(p - 1));
-            String subTitle = pages.getJSONObject(p - 1).getString("part");
-            // 显示标题+分p标题
-            labTitle.setText(String.join(" ", title, subTitle));
-        } else {
-            // 获取全集下载信息
-            downloadInfoList.addAll(pages.toJavaList(JSONObject.class));
-            // 显示标题
+            isBangumi = Boolean.TRUE;
+            String respond = Jsoup.connect(requestUrl).get().toString();
+            JSONObject info;
+            respond = respond.replaceAll("\\s*", "");
+            Matcher matcher = PATTERN_BANGUMI_INFO.matcher(respond);
+            if (matcher.find()) {
+                info = JSONObject.parseObject(matcher.group(1));
+            } else {
+                errorAlert("获取番剧信息失败\n请联系作者");
+                labTitle.setText(StringUtils.EMPTY);
+                labAuthor.setText(StringUtils.EMPTY);
+                return Boolean.FALSE;
+            }
+            // 判断是否全下载
+            if (cbDownloadAll.isSelected()) {
+                downloadInfoList.addAll(info.getJSONArray("epList").toJavaList(JSONObject.class));
+                title = info.getJSONObject("mediaInfo").getString("title");
+            } else {
+                downloadInfoList.add(info.getJSONObject("epInfo"));
+                title = String.join(" ", info.getJSONObject("mediaInfo").getString("title"),
+                    info.getJSONObject("epInfo").getString("titleFormat"), info.getJSONObject("epInfo").getString("longTitle"));
+            }
             labTitle.setText(title);
+        } else {
+            // 判断是否是b站的连接
+            boolean isBv = PATTERN_URL_BV.matcher(requestUrl).matches();
+            // 地址处理
+            if (requestUrl.contains("/?")) {
+                requestUrl = requestUrl.replace("/?", "?");
+            }
+            if (requestUrl.contains("?") && !requestUrl.contains("?p=")) {
+                requestUrl = requestUrl.substring(0, requestUrl.indexOf("?"));
+            }
+            if (requestUrl.contains("&")) {
+                requestUrl = requestUrl.substring(0, requestUrl.indexOf("&"));
+            }
+            // 区别是单p下载还是全集下载
+            if (cbDownloadAll.isSelected()) {
+                if (requestUrl.contains("?p=")) {
+                    requestUrl = requestUrl.substring(0, requestUrl.indexOf("?p="));
+                }
+            }
+            // 是否是分p
+            boolean containsP = requestUrl.contains("?p=");
+            if (!isBv) {
+                errorAlert("请复制粘贴使用完整B站视频链接\n如果还是不能识别，请联系作者");
+                labTitle.setText(StringUtils.EMPTY);
+                labAuthor.setText(StringUtils.EMPTY);
+                return Boolean.FALSE;
+            }
+            String infoUrl;
+            // BV号
+            String bvId;
+            int p = 0;
+            if (containsP) {
+                bvId = requestUrl.substring(requestUrl.indexOf("BV") + 2, requestUrl.indexOf("?p="));
+                p = Integer.parseInt(requestUrl.substring(requestUrl.indexOf("?p=") + 3));
+            } else {
+                bvId = requestUrl.substring(requestUrl.indexOf("BV") + 2);
+            }
+            infoUrl = String.format(API_BILIBILI_BV, bvId);
+            String respond = HttpUtil.doGet(infoUrl, inputUrl.getText(), StringUtils.EMPTY);
+            // 增加链接获取信息失败后的信息反馈
+            if (StringUtils.isBlank(respond) || !JSONObject.parseObject(respond).getString("code").equals("0")) {
+                errorAlert("获取视频失败");
+                labTitle.setText(StringUtils.EMPTY);
+                labAuthor.setText(StringUtils.EMPTY);
+                return Boolean.FALSE;
+            }
+            JSONObject respondJson = JSONObject.parseObject(respond);
+            JSONObject data = respondJson.getJSONObject("data");
+            title = data.getString("title");
+            JSONArray pages = data.getJSONArray("pages");
+            if (containsP) {
+                // 获取单p信息
+                downloadInfoList.add(pages.getJSONObject(p - 1));
+                String subTitle = pages.getJSONObject(p - 1).getString("part");
+                // 显示标题+分p标题
+                labTitle.setText(String.join(" ", title, subTitle));
+            } else {
+                // 获取全集下载信息
+                downloadInfoList.addAll(pages.toJavaList(JSONObject.class));
+                // 显示标题
+                labTitle.setText(title);
+            }
+            labAuthor.setText(data.getJSONObject("owner").getString("name"));
         }
-        labAuthor.setText(data.getJSONObject("owner").getString("name"));
         return Boolean.TRUE;
     }
 
@@ -339,11 +374,20 @@ public class RootController {
      */
     private void paddingDownloadInfo() {
         for (JSONObject jsonObject : downloadInfoList) {
-            String downloadUrl = String.format(PARAMS, jsonObject.get("cid"), quality, quality);
-            String sign = getMd5(downloadUrl + SEC);
-            downloadUrl = String.format(API_BILIBILI_DOWNLOAD, downloadUrl, sign);
-            JSONObject respondJson = JSONObject.parseObject(HttpUtil.doGet(downloadUrl));
+            String downloadUrl;
+            if (isBangumi) {
+                downloadUrl = String
+                    .format(API_BILIBILI_BANGUMI, jsonObject.get("cid"), jsonObject.get("aid"), quality, SESSION);
+            } else {
+                downloadUrl = String.format(PARAMS_VIDEO, jsonObject.get("cid"), quality, quality);
+                String sign = getMd5(downloadUrl + SEC);
+                downloadUrl = String.format(API_BILIBILI_DOWNLOAD, downloadUrl, sign);
+            }
+            JSONObject respondJson = JSONObject.parseObject(HttpUtil.doGet(downloadUrl, inputUrl.getText(), SESSION));
             String subFix;
+            if (isBangumi) {
+                respondJson = respondJson.getJSONObject("data");
+            }
             // 后缀优先mp4
             if (respondJson.getString("accept_format").contains("mp4")) {
                 subFix = ".mp4";
@@ -352,10 +396,22 @@ public class RootController {
             }
             JSONObject respond = respondJson.getJSONArray("durl").getJSONObject(0);
             // 文件名称
-            String name = jsonObject.getString("part") + subFix;
+            String name;
             // 文件总大小
             totalLength += respond.getLong("size");
-            FileDTO fileDTO = new FileDTO(String.join("/", pathText.getText(), name), respond.getString("url"),
+            String filePath;
+            if (isBangumi) {
+                name = labTitle.getText() + ".flv";
+
+            } else {
+                if (StringUtils.isBlank(jsonObject.getString("part"))) {
+                    name = labTitle.getText() + subFix;
+                } else {
+                    name = jsonObject.getString("part") + subFix;
+                }
+            }
+            filePath = String.join("/", pathText.getText(), name);
+            FileDTO fileDTO = new FileDTO(filePath, respond.getString("url"),
                 respond.getLong("size"));
             downloadUrlList.add(fileDTO);
         }

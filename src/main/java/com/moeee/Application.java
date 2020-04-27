@@ -17,7 +17,7 @@ import javafx.stage.Stage;
 public class Application extends javafx.application.Application {
 
     public static final String APP_NAME = "Bilibili Native Downloader";
-    public static final String APP_VERSION = "1.2";
+    public static final String APP_VERSION = "1.3";
 
     @Override
     public void start(Stage primaryStage) {

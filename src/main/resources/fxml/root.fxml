@@ -23,8 +23,8 @@
                 <Insets top="5.0" />
               </padding>
             </Label>
-            <JFXTextField fx:id="inputUrl" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="350.0" text="https://www.bilibili.com/video/BV1ME411v7jv" unFocusColor="#392121">
-              <rotationAxis>
+            <JFXTextField fx:id="inputUrl" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="350.0" text="https://www.bilibili.com/bangumi/play/ep267692" unFocusColor="#392121">
+            <rotationAxis>
                 <Point3D x="1.0" y="1.0" z="1.0" />
               </rotationAxis>
               <HBox.margin>

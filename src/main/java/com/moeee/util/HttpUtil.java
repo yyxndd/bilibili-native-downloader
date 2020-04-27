@@ -21,12 +21,14 @@ public class HttpUtil {
     /**
      * 简易get请求<br>
      *
-     * @param uri 资源地址
+     * @param uri      资源地址
+     * @param referrer
+     * @param session
      * @Author: MoEee <br>
      * @Date: 2020/4/13 <br>
      * @return: java.lang.String
      */
-    public static String doGet(String uri) {
+    public static String doGet(String uri, String referrer, String session) {
         HttpURLConnection httpURLConnection = null;
         try {
             URL url = new URL(uri);
@@ -37,6 +39,12 @@ public class HttpUtil {
             httpURLConnection.setRequestProperty("Connection", "keep-alive");
             httpURLConnection.setRequestProperty("User-Agent",
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.1 Safari/605.1.15");
+            if (StringUtils.isNotBlank(referrer)) {
+                httpURLConnection.setRequestProperty("Referer", referrer);
+            }
+            if (StringUtils.isNotBlank(session)) {
+                httpURLConnection.setRequestProperty("Cookie", "SESSDATA=" + session);
+            }
             return readInputStream(httpURLConnection.getInputStream());
         } catch (IOException ex) {
             if (httpURLConnection != null) {
